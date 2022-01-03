@@ -263,7 +263,6 @@ void delete_gr(Graph*gr){
     for (int i = 0; i < gr->N; ++i) {
         free(gr->nodes[i].weights);
         free(gr->nodes[i].neighbors);
-        free(gr->nodes+i);
     }
     free(gr->nodes);
     free(gr);
