@@ -10,7 +10,6 @@ struct Node{
     int num_of_neighbors;
 } typedef Node;
 
-
 typedef struct Graph {
     int N;
     Node *nodes;

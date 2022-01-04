@@ -125,23 +125,24 @@ void delete_node(int num, Graph *gr)
     {
         free(my_src->neighbors);
         my_src->neighbors = NULL;
-        // free(my_src->neighbors[i]);
     }
     for (int i = 0; i < my_src->num_of_neighbors; ++i)
     {
         free(my_src->weights);
         my_src->weights = NULL;
-        // free(my_src->weights);
     }
     my_src->num_of_neighbors = 0;
     for (int i = 0; i < gr->N; ++i)
     {
         delete_helper(num, &gr->nodes[i], gr);
     }
+    // free(&gr->nodes[num]);
+    // gr->N--;
 }
 
 void delete_helper(int num, Node *node, Graph *gr)
 {
+    printf(" 1 .i am here\n");
     Node **new_neighbors = (Node **)realloc(node->neighbors, gr->N - 1);
     int *new_weights = (int *)realloc(node->weights, gr->N - 1);
     int location_of_neighbor = -1;
@@ -153,10 +154,12 @@ void delete_helper(int num, Node *node, Graph *gr)
             break;
         }
     }
+    printf(" 2. i am here\n");
     if (location_of_neighbor == -1)
     {
         return;
     }
+    printf(" 3 . i am here\n");
     if (location_of_neighbor == 0)
     {
         memcpy(new_neighbors, node->neighbors[1],
@@ -184,12 +187,10 @@ void delete_helper(int num, Node *node, Graph *gr)
                &node->weights[location_of_neighbor + 1],
                (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
     }
+    printf("4 . i am here\n");
     for (int j = 0; j < node->num_of_neighbors; ++j)
     {
-        // free(node->neighbors);
-        // my_src->neighbors = NULL;
-        // my_src->num_of_neighbors = 0;
-        free(node->neighbors[j]);
+        free(node->neighbors);
     }
     node->neighbors = new_neighbors;
     node->weights = new_weights;
