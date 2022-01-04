@@ -121,23 +121,26 @@ void delete_node(int num, Graph *gr)
             my_src = &gr->nodes[i];
         }
     }
-    for (int i = 0; i < my_src->num_of_neighbors; ++i)
-    {
-        free(my_src->neighbors);
-        my_src->neighbors = NULL;
-    }
-    for (int i = 0; i < my_src->num_of_neighbors; ++i)
-    {
-        free(my_src->weights);
-        my_src->weights = NULL;
-    }
+    free(my_src->neighbors);
+    my_src->neighbors = NULL;
+    free(my_src->weights);
+    my_src->weights = NULL;
     my_src->num_of_neighbors = 0;
     for (int i = 0; i < gr->N; ++i)
     {
         delete_helper(num, &gr->nodes[i], gr);
     }
-    // free(&gr->nodes[num]);
-    // gr->N--;
+    Node *new_nodes = (Node *)malloc((gr->N-1) * sizeof(Node));
+    int counter = 0 ;
+    for(int i = 0 ; i< gr->N ; ++i){
+        if(gr->nodes[i].num_node != num){
+            new_nodes[counter] = gr->nodes[i];
+            counter++;
+        }
+    }
+    free(gr->nodes);
+    gr->nodes = new_nodes;
+    gr->N--;
 }
 
 void delete_helper(int num, Node *node, Graph *gr)
@@ -154,21 +157,21 @@ void delete_helper(int num, Node *node, Graph *gr)
             break;
         }
     }
-    printf(" 2. i am here\n");
     if (location_of_neighbor == -1)
     {
         return;
     }
-    printf(" 3 . i am here\n");
     if (location_of_neighbor == 0)
     {
+        printf(" 1. node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
         memcpy(new_neighbors, node->neighbors[1],
-               (node->num_of_neighbors - 1) * sizeof(Node *));
+               (node->num_of_neighbors - 1 ) * sizeof(Node *));
         memcpy(new_weights, &node->weights[1],
-               (node->num_of_neighbors - 1) * sizeof(int));
+               (node->num_of_neighbors - 1 ) * sizeof(int));
     }
-    else if (location_of_neighbor == node->num_of_neighbors - 1)
+    else if (location_of_neighbor == node->num_of_neighbors - 1) // 5
     {
+        printf("2. node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
         memcpy(new_neighbors, node->neighbors[0],
                (node->num_of_neighbors - 1) * sizeof(Node *));
         memcpy(new_weights, &node->weights[0],
@@ -176,6 +179,7 @@ void delete_helper(int num, Node *node, Graph *gr)
     }
     else
     {
+        printf("node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
         memcpy(new_neighbors, node->neighbors[0],
                (location_of_neighbor) * sizeof(Node *));
         memcpy(new_neighbors[location_of_neighbor],
@@ -188,13 +192,11 @@ void delete_helper(int num, Node *node, Graph *gr)
                (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
     }
     printf("4 . i am here\n");
-    for (int j = 0; j < node->num_of_neighbors; ++j)
-    {
-        free(node->neighbors);
-    }
+//    free(node->neighbors);
     node->neighbors = new_neighbors;
     node->weights = new_weights;
     node->num_of_neighbors--;
+//    free(node->neighbors);
 }
 
 int min_Val(struct Graph *gr)
