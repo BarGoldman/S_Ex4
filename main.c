@@ -11,7 +11,7 @@ int main()
     //	printf("enter First letter A/B/D/S: \n");
     while (scanf("%c", &ch))
     {
-        if (ch == 'W')
+        if (ch == '\n') 
         {
             break;
         }
@@ -51,7 +51,7 @@ int main()
                         set_edge(src_A, dest_A, w_A, gr);
                     }
                 }
-                if (ch == 'A' || ch == 'B' || ch == 'D' || ch == 'S' || ch == 'T' || ch == 'W')
+                if (ch == 'A' || ch == 'B' || ch == 'D' || ch == 'S' || ch == 'T' || ch == '\n')
                 {
                     break;
                 }
@@ -94,16 +94,17 @@ int main()
             scanf("%d", &src);
             //			printf("enter node dest: \n");
             scanf("%d", &dest);
-            printf("Dijsktra shortest path: %d\n", shortsPath(src, dest, gr));
-            printGraph(gr);
+            int ans  = shortsPath(src, dest, gr);
+            printf("Dijsktra shortest path: %d\n", ans);
+            // printGraph(gr);
             //			printf("enter next letter : \n");
         }
-        if (ch == 'W')
-        {
-            printf("i here:\n");
-            printGraph(gr);
-            break;
-        }
+        // if (ch == 'W')
+        // {
+        //     printf("i here:\n");
+        //     printGraph(gr);
+        //     break;
+        // }
         if (ch == 'T')
         {
             int k;

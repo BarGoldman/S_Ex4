@@ -4,8 +4,6 @@
 #include <string.h>
 #include "graph.h"
 
-//#define MIN (X, Y) (((X) < (Y)) ? (X) : (Y))
-
 // struct Node {
 //     int num_node;
 //     int Tag;
