@@ -127,7 +127,7 @@ void delete_node(int num, Graph *gr)
     for (int i = 0; i < my_src->num_of_neighbors; i++)
     {
         printf("%d\n", my_src->neighbors[i]->num_node);
-        
+
         printf("%d\n", my_src->neighbors[i]->weights[0]);
        free(my_src->neighbors[i]);
     }
@@ -414,7 +414,7 @@ void TSP(int num_of_values, struct Graph *gr)
             i++;
         }
     }
-    if (ans == MAX_INPUT || ans == 0)
+    if (ans == INT_MAX || ans == 0)
     {
         ans = -1;
         printf("TSP shortest path: %d\n", ans);
