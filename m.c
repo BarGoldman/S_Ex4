@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -63,13 +62,7 @@ void set_edge(int src, int dest, int w, Graph *gr) // add to node edge
         my_src->neighbors = (Node **)realloc(my_src->neighbors, my_src->num_of_neighbors * sizeof(Node *));
         my_src->weights = (int *)realloc(my_src->weights, my_src->num_of_neighbors * sizeof(int));
     }
-    my_src->neighbors[my_src->num_of_neighbors - 1] = (Node*)malloc(sizeof(Node));
-    my_src->neighbors[my_src->num_of_neighbors - 1]->num_node = my_dest->num_node;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->neighbors = my_dest->neighbors;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->num_of_neighbors = my_dest->num_of_neighbors;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->weights = my_dest->weights;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->w_sum = my_dest->w_sum;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->Tag = my_dest->Tag;
+    my_src->neighbors[my_src->num_of_neighbors - 1] = my_dest;
     my_src->weights[my_src->num_of_neighbors - 1] = w;
     // if (!my_src->neighbors)
     // {
@@ -124,36 +117,39 @@ void delete_node(int num, Graph *gr)
     printf("line 117\n");
     Node *my_src = NULL;
     for (int i = 0; i < gr->N; ++i)
+    {
         if (gr->nodes[i].num_node == num)
         {
             my_src = &gr->nodes[i];
-            break;
         }
+    }
     printf("line 126\n");
+    for (int i = 0; i < my_src->num_of_neighbors; i++)
+    {
+        printf("%d\n", my_src->neighbors[i]->num_node);
+
+        printf("%d\n", my_src->neighbors[i]->weights[0]);
+       free(my_src->neighbors[i]);
+    }
     printf("line 131\n");
-    printGraph(gr);
     free(my_src->neighbors);
     my_src->neighbors = NULL;
     free(my_src->weights);
     my_src->weights = NULL;
     my_src->num_of_neighbors = 0;
-    printGraph(gr);
     printf("line 137\n");
-    // for (int i = 0; i < gr->N; ++i)
-    // {
-    //    delete_helper(num, &gr->nodes[i], gr);
-    // }
+    for (int i = 0; i < gr->N; ++i)
+    {
+        delete_helper(num, &gr->nodes[i], gr);
+    }
     printf("line 142\n");
     Node *new_nodes = (Node *)malloc((gr->N-1) * sizeof(Node));
     int counter = 0 ;
-    for(int i = 0 ; i< gr->N ; ++i)
-    {
-        if(gr->nodes[i].num_node != num)
-        {
+    for(int i = 0 ; i< gr->N ; ++i){
+        if(gr->nodes[i].num_node != num){
             new_nodes[counter] = gr->nodes[i];
             counter++;
         }
-
     }
     printf("line 150\n");
     free(gr->nodes);
@@ -161,89 +157,59 @@ void delete_node(int num, Graph *gr)
     gr->N--;
 }
 
-void delete_helper(int num, Node* node, Graph* gr)
+void delete_helper(int num, Node *node, Graph *gr)
 {
-    for (int i = 0; i < gr->N; i++)
+    printf(" 1 .i am here\n");
+    Node **new_neighbors = (Node **)realloc(node->neighbors, gr->N - 1);
+    int *new_weights = (int *)realloc(node->weights, gr->N - 1);
+    int location_of_neighbor = -1;
+    for (int j = 0; j < node->num_of_neighbors; ++j)
     {
-       for (int j = 0; j < gr->nodes[i].num_of_neighbors; j++)
-       {
-           if (gr->nodes[i].neighbors[j]->num_node == num)
-           {
-               free(gr->nodes[i].neighbors);
-               if (j == 0)
-                   for (int k = 1; k < gr->nodes[i].num_of_neighbors; k++)
-                   {
-                       gr->nodes[i].neighbors[k - 1] = (Node*)malloc(sizeof(Node));
-                       gr->nodes[i].neighbors[k - 1] = gr->nodes[i].neighbors[k];
-                   }
-               else
-               {
-                   if (j > 0 && j < gr->nodes[i].num_of_neighbors - 1)
-                   {
-                       for (int k = j; k < gr->nodes[i].num_of_neighbors - 1; k++)
-                       {
-                           gr->nodes[i].neighbors[k] = (Node*)malloc(sizeof(Node));
-                           gr->nodes[i].neighbors[k] = gr->nodes[i].neighbors[k + 1];
-                       }
-                       free(gr->nodes[i].neighbors[gr->nodes[i].num_of_neighbors - 1]);
-                   }
-               }
-               gr->nodes[i].num_of_neighbors--;
-           }
-       }
+        if (node->neighbors[j]->num_node == num)
+        {
+            location_of_neighbor = j;
+            break;
+        }
     }
-
-    // printf(" 1 .i am here\n");
-    // Node **new_neighbors = (Node **)realloc(node->neighbors, gr->N - 1);
-    // int *new_weights = (int *)realloc(node->weights, gr->N - 1);
-    // int location_of_neighbor = -1;
-    // for (int j = 0; j < node->num_of_neighbors; ++j)
-    // {
-    //     if (node->neighbors[j]->num_node == num)
-    //     {
-    //         location_of_neighbor = j;
-    //         break;
-    //     }
-    // }
-    // if (location_of_neighbor == -1)
-    // {
-    //     return;
-    // }
-    // if (location_of_neighbor == 0)
-    // {
-    //     printf(" 1. node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
-    //     memcpy(new_neighbors, node->neighbors[1],
-    //            (node->num_of_neighbors - 1 ));
-    //     memcpy(new_weights, &node->weights[1],
-    //            (node->num_of_neighbors - 1 ) * sizeof(int));
-    // }
-    // else if (location_of_neighbor == node->num_of_neighbors - 1) // 5
-    // {
-    //     printf("2. node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
-    //     memcpy(new_neighbors, node->neighbors[0],
-    //            (node->num_of_neighbors - 1) * sizeof(Node *));
-    //     memcpy(new_weights, &node->weights[0],
-    //            (node->num_of_neighbors - 1) * sizeof(int));
-    // }
-    // else
-    // {
-    //     printf("node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
-    //     memcpy(new_neighbors, node->neighbors[0],
-    //            (location_of_neighbor) * sizeof(Node *));
-    //     memcpy(new_neighbors[location_of_neighbor],
-    //            node->neighbors[location_of_neighbor + 1],
-    //            (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
-    //     memcpy(new_weights, &node->weights[0],
-    //            (location_of_neighbor) * sizeof(Node *));
-    //     memcpy(&new_weights[location_of_neighbor],
-    //            &node->weights[location_of_neighbor + 1],
-    //            (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
-    // }
-    // printf("4 . i am here\n");
-    // free(node->neighbors);
-    // node->neighbors = new_neighbors;
-    // node->weights = new_weights;
-    // node->num_of_neighbors--;
+    if (location_of_neighbor == -1)
+    {
+        return;
+    }
+    if (location_of_neighbor == 0)
+    {
+        printf(" 1. node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
+        memcpy(new_neighbors, node->neighbors[1],
+               (node->num_of_neighbors - 1 ) * sizeof(Node *));
+        memcpy(new_weights, &node->weights[1],
+               (node->num_of_neighbors - 1 ) * sizeof(int));
+    }
+    else if (location_of_neighbor == node->num_of_neighbors - 1) // 5
+    {
+        printf("2. node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
+        memcpy(new_neighbors, node->neighbors[0],
+               (node->num_of_neighbors - 1) * sizeof(Node *));
+        memcpy(new_weights, &node->weights[0],
+               (node->num_of_neighbors - 1) * sizeof(int));
+    }
+    else
+    {
+        printf("node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
+        memcpy(new_neighbors, node->neighbors[0],
+               (location_of_neighbor) * sizeof(Node *));
+        memcpy(new_neighbors[location_of_neighbor],
+               node->neighbors[location_of_neighbor + 1],
+               (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
+        memcpy(new_weights, &node->weights[0],
+               (location_of_neighbor) * sizeof(Node *));
+        memcpy(&new_weights[location_of_neighbor],
+               &node->weights[location_of_neighbor + 1],
+               (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
+    }
+    printf("4 . i am here\n");
+    free(node->neighbors);
+    node->neighbors = new_neighbors;
+    node->weights = new_weights;
+    node->num_of_neighbors--;
 //    free(node->neighbors);
 }
 
