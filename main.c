@@ -15,7 +15,7 @@ int main()
         {
             break;
         }
-        while (ch == 'A')
+        if (ch == 'A')
         {
             if (gr != NULL)
             {

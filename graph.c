@@ -55,21 +55,24 @@ void set_edge(int src, int dest, int w, Graph *gr) // add to node edge
     if (!my_src->neighbors)
     {
         my_src->neighbors = (Node **)malloc(my_src->num_of_neighbors * sizeof(Node *));
-    }
-    else
-    {
-        my_src->neighbors = (Node **)realloc(my_src->neighbors, my_src->num_of_neighbors * sizeof(Node *));
-    }
-    my_src->neighbors[my_src->num_of_neighbors - 1] = my_dest;
-    if (!my_src->neighbors)
-    {
         my_src->weights = (int *)malloc(my_src->num_of_neighbors * sizeof(int));
     }
     else
     {
+        my_src->neighbors = (Node **)realloc(my_src->neighbors, my_src->num_of_neighbors * sizeof(Node *));
         my_src->weights = (int *)realloc(my_src->weights, my_src->num_of_neighbors * sizeof(int));
     }
+    my_src->neighbors[my_src->num_of_neighbors - 1] = my_dest;
     my_src->weights[my_src->num_of_neighbors - 1] = w;
+    // if (!my_src->neighbors)
+    // {
+    //     my_src->weights = (int *)malloc(my_src->num_of_neighbors * sizeof(int));
+    // }
+    // else
+    // {
+    //     my_src->weights = (int *)realloc(my_src->weights, my_src->num_of_neighbors * sizeof(int));
+    // }
+    // my_src->weights[my_src->num_of_neighbors - 1] = w;
 }
 
 Node *add_node(int src, Graph *gr)
@@ -111,6 +114,7 @@ void reset_tag(const struct Graph *gr);
 
 void delete_node(int num, Graph *gr)
 {
+    printf("line 117\n");
     Node *my_src = NULL;
     for (int i = 0; i < gr->N; ++i)
     {
@@ -119,15 +123,26 @@ void delete_node(int num, Graph *gr)
             my_src = &gr->nodes[i];
         }
     }
+    printf("line 126\n");
+    for (int i = 0; i < my_src->num_of_neighbors; i++)
+    {
+        printf("%d\n", my_src->neighbors[i]->num_node);
+        
+        printf("%d\n", my_src->neighbors[i]->weights[0]);
+       free(my_src->neighbors[i]);
+    }
+    printf("line 131\n");
     free(my_src->neighbors);
     my_src->neighbors = NULL;
     free(my_src->weights);
     my_src->weights = NULL;
     my_src->num_of_neighbors = 0;
+    printf("line 137\n");
     for (int i = 0; i < gr->N; ++i)
     {
         delete_helper(num, &gr->nodes[i], gr);
     }
+    printf("line 142\n");
     Node *new_nodes = (Node *)malloc((gr->N-1) * sizeof(Node));
     int counter = 0 ;
     for(int i = 0 ; i< gr->N ; ++i){
@@ -136,6 +151,7 @@ void delete_node(int num, Graph *gr)
             counter++;
         }
     }
+    printf("line 150\n");
     free(gr->nodes);
     gr->nodes = new_nodes;
     gr->N--;
@@ -190,7 +206,7 @@ void delete_helper(int num, Node *node, Graph *gr)
                (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
     }
     printf("4 . i am here\n");
-//    free(node->neighbors);
+    free(node->neighbors);
     node->neighbors = new_neighbors;
     node->weights = new_weights;
     node->num_of_neighbors--;
@@ -417,6 +433,10 @@ void delete_gr(Graph *gr)
     for (int i = 0; i < gr->N; ++i)
     {
         free(gr->nodes[i].weights);
+        for (int j = 0; j < gr->nodes[i].num_of_neighbors ; j++)
+        {
+            free(gr->nodes[i].neighbors[j]);
+        }
         free(gr->nodes[i].neighbors);
     }
     free(gr->nodes);
