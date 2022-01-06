@@ -119,47 +119,80 @@ void delete_helper(int num, Node *node, Graph *gr);
 
 void reset_tag(const struct Graph *gr);
 
-void delete_node(int num, Graph *gr)
-{
-    printf("line 117\n");
-    Node *my_src = NULL;
-    for (int i = 0; i < gr->N; ++i)
-        if (gr->nodes[i].num_node == num)
-        {
-            my_src = &gr->nodes[i];
-            break;
-        }
-    printf("line 126\n");
-    printf("line 131\n");
-    printGraph(gr);
-    free(my_src->neighbors);
-    my_src->neighbors = NULL;
-    free(my_src->weights);
-    my_src->weights = NULL;
-    my_src->num_of_neighbors = 0;
-    printGraph(gr);
-    printf("line 137\n");
-    // for (int i = 0; i < gr->N; ++i)
-    // {
-    //    delete_helper(num, &gr->nodes[i], gr);
-    // }
-    printf("line 142\n");
-    Node *new_nodes = (Node *)malloc((gr->N-1) * sizeof(Node));
-    int counter = 0 ;
-    for(int i = 0 ; i< gr->N ; ++i)
-    {
-        if(gr->nodes[i].num_node != num)
-        {
-            new_nodes[counter] = gr->nodes[i];
-            counter++;
-        }
+// void delete_node(int num, Graph *gr)
+// {
+//     printf("line 117\n");
+//     Node *my_src = NULL;
+//     for (int i = 0; i < gr->N; ++i)
+//         if (gr->nodes[i].num_node == num)
+//         {
+//             my_src = &gr->nodes[i];
+//             break;
+//         }
+//     printf("line 126\n");
+//     printf("line 131\n");
+//     printGraph(gr);
+//     free(my_src->neighbors);
+//     my_src->neighbors = NULL;
+//     free(my_src->weights);
+//     my_src->weights = NULL;
+//     my_src->num_of_neighbors = 0;
+//     printGraph(gr);
+//     printf("line 137\n");
+//     // for (int i = 0; i < gr->N; ++i)
+//     // {
+//     //    delete_helper(num, &gr->nodes[i], gr);
+//     // }
+//     printf("line 142\n");
+//     Node *new_nodes = (Node *)malloc((gr->N-1) * sizeof(Node));
+//     int counter = 0 ;
+//     for(int i = 0 ; i< gr->N ; ++i)
+//     {
+//         if(gr->nodes[i].num_node != num)
+//         {
+//             new_nodes[counter] = gr->nodes[i];
+//             counter++;
+//         }
+//         for (int j = 0; j < gr->nodes[i].num_of_neighbors; j++)
+//        {
+//            printf("line 158: gr->nodes[i] %d\n", gr->nodes[i].num_node);
+//            printf("line 159: gr->nodes[i].num_of_neighbors %d\n", gr->nodes[i].num_of_neighbors);
+//            if (gr->nodes[i].neighbors[j]->num_node == num)
+//            {
+//                if (j == 0)
+//                    for (int k = 1; k < gr->nodes[i].num_of_neighbors; k++)
+//                    {
+//                        printf("line 165: j==0:  gr->nodes[i] %d\n", gr->nodes[i].num_node);
+//                        gr->nodes[i].neighbors[k - 1] = (Node*)malloc(gr->nodes[i].num_of_neighbors-1 * sizeof(Node));
+//                        gr->nodes[i].neighbors[k - 1] = gr->nodes[i].neighbors[k];
+//                    }
+//                else
+//                {
+//                    if (j > 0 && j < gr->nodes[i].num_of_neighbors - 1)
+//                    {
+//                        printf("line 173: else 1 :  gr->nodes[i] %d\n", gr->nodes[i].num_node);
+//                        for (int k = j; k < gr->nodes[i].num_of_neighbors - 1; k++)
+//                        {
+//                            gr->nodes[i].neighbors[k] = (Node*)malloc(gr->nodes[i].num_of_neighbors-1 * sizeof(Node));
+//                            gr->nodes[i].neighbors[k] = gr->nodes[i].neighbors[k + 1];
+//                        }
+//                        free(gr->nodes[i].neighbors[gr->nodes[i].num_of_neighbors - 1]);
+//                    }
+//                    else{
+//                        printf("line 173: else 1 :  gr->nodes[i] %d\n", gr->nodes[i].num_node);
+//                    }
+//                }
+//                free(gr->nodes[i].neighbors);
+//                gr->nodes[i].num_of_neighbors--;
+//            }
+//        }
 
-    }
-    printf("line 150\n");
-    free(gr->nodes);
-    gr->nodes = new_nodes;
-    gr->N--;
-}
+//     }
+//     printf("line 150\n");
+//     free(gr->nodes);
+//     gr->nodes = new_nodes;
+//     gr->N--;
+// }
 
 void delete_helper(int num, Node* node, Graph* gr)
 {

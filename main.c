@@ -78,15 +78,15 @@ int main()
             }
             printGraph(gr);
         }
-        if (ch == 'D')
-        {
-            int dest;
-            //			printf("enter node delete: \n");
-            scanf("%d", &dest);
-            delete_node(dest, gr);
-            printGraph(gr);
-            //			printf("enter next letter : \n");
-        }
+        // if (ch == 'D')
+        // {
+        //     int dest;
+        //     //			printf("enter node delete: \n");
+        //     scanf("%d", &dest);
+        //     delete_node(dest, gr);
+        //     printGraph(gr);
+        //     //			printf("enter next letter : \n");
+        // }
         if (ch == 'S')
         {
             int src;
