@@ -333,12 +333,6 @@ int shortsPath(int src, int dest, struct Graph *gr) // you get the shorts path
             // printf("gr->nodes[temp->num_node].w_sum: %d ptr->weights[j] %d  ptr->w_sum %d\n", gr->nodes[temp->num_node].w_sum, ptr->weights[j], ptr->w_sum);
             // printf(" MIN %d\n", MIN(gr->nodes[temp->num_node].w_sum, ptr->weights[j] + ptr->w_sum));
             gr->nodes[temp->num_node].w_sum = MIN(gr->nodes[temp->num_node].w_sum, ptr->weights[j] + ptr->w_sum);
-            // printf("Node %d w_sum now: %d\n", temp->num_node, temp->w_sum);
-            // printf("Node %d: %d\n", gr->nodes[0].num_node, gr->nodes[0].w_sum);
-            // printf("Node %d: %d\n", gr->nodes[1].num_node, gr->nodes[1].w_sum);
-            // printf("Node %d: %d\n", gr->nodes[2].num_node, gr->nodes[2].w_sum);
-            // printf("Node %d: %d\n", gr->nodes[3].num_node, gr->nodes[3].w_sum);
-            // printf("Node %d: %d\n", gr->nodes[4].num_node, gr->nodes[4].w_sum);
         }
         int num = min_Val(gr);
         ptr = &gr->nodes[num];
