@@ -36,7 +36,7 @@ int Dijkstra(struct GraphDijkstra *graph, int src,int dest)
     mdist[src] = 0;
 
     // iterate to find shortest path
-    for (int count = 0; count < V - 1; count++)
+    for (int j = 0; j < V - 1; j++)
     {
         int u = minDistance(mdist, vset, V);
         vset[u] = 1;
