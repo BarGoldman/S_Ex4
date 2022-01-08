@@ -4,391 +4,300 @@
 #include <limits.h>
 #include <string.h>
 #include "graph.h"
+#include "dijkstra.h"
 
-// struct Node {
-//     int num_node;
-//     int Tag;
-//     int w_sum;
-//     struct Node **neighbors;
-//     int *weights;
-//     int num_of_neighbors;
-// } typedef Node;
+static void add_edge_to_node(Edge *edge, Node *node);
+static void remove_incoming_edges(int dest, Graph *gr);
 
-// struct Graph {
-//     int N;
-//     Node *nodes;
-// } typedef Graph;
+void recieve_edges(int src_A, struct Graph *gr)
+{
+    int dest_A;
+    int w_A;
+    while (scanf("%d", &dest_A))
+    {
+        scanf("%d", &w_A); // get the destination node
+        set_edge(src_A, dest_A, w_A, gr);
+    }
+    return;
+}
 
 Graph *build_graph(int N)
 {
     Graph *my_graph = (Graph *)malloc(sizeof(Graph));
-    my_graph->nodes = (Node *)malloc(N * sizeof(Node));
+    my_graph->nodes_head = NULL; // initialize the head of the nodes list
     my_graph->N = N;
-    for (int i = 0; i < my_graph->N; ++i)
-    {
-        my_graph->nodes[i].num_node = i;
-        my_graph->nodes[i].neighbors = NULL;
-        my_graph->nodes[i].weights = NULL;
-        my_graph->nodes[i].Tag = 0;
-        my_graph->nodes[i].w_sum = 0;
-        my_graph->nodes[i].num_of_neighbors = 0;
-    }
     return my_graph;
+}
+
+static void add_edge_to_node(Edge *edge, Node *node)
+{
+    edge->next = node->edges_head; // add the edge to the head of the list
+    edge->prev = NULL; // the new edge is the head of the list
+
+    // if the list is not empty
+    if (node->edges_head != NULL)
+    {
+        node->edges_head->prev = edge; // update the previous pointer of the head of the list
+    }
+    node->edges_head = edge; // update the head of the list
+    return;
 }
 
 void set_edge(int src, int dest, int w, Graph *gr) // add to node edge
 {
-    printf("i am here:\n");
     Node *my_src = NULL;
-    Node *my_dest = NULL;
-    for (int i = 0; i < gr->N; ++i)
+    // search the node in the graph with id = src
+    for (Node *node = gr->nodes_head; node != NULL; node = node->next)
     {
-        if (gr->nodes[i].num_node == src)
+        if (node->num_node == src)
         {
-            my_src = &gr->nodes[i];
-        }
-        if (gr->nodes[i].num_node == dest)
-        {
-            my_dest = &gr->nodes[i];
+            my_src = node;
+            break;
         }
     }
+
+    // if the node is not found
+    if (my_src == NULL)
+    {
+        printf("node %d is not found\n", src);
+        exit(1);
+    }
+
+    // add edge to the node
+    Edge *edge = (Edge *)malloc(sizeof(Edge));
+    if (edge == NULL)
+    {
+        printf("malloc failed\n");
+        exit(1);
+    }
+
+    edge->src = src;
+    edge->dest = dest;
+    edge->weight = w;
+
+    // add edge to the node
+    add_edge_to_node(edge, my_src);
     my_src->num_of_neighbors++;
-    if (!my_src->neighbors ) // not Null
-    {
-        my_src->neighbors = (Node **)malloc(my_src->num_of_neighbors * sizeof(Node *));
-        my_src->weights = (int *)malloc(my_src->num_of_neighbors * sizeof(int));
-    }
-    else
-    {
-        my_src->neighbors = (Node **)realloc(my_src->neighbors, my_src->num_of_neighbors * sizeof(Node *));
-        my_src->weights = (int *)realloc(my_src->weights, my_src->num_of_neighbors * sizeof(int));
-    }
-    my_src->neighbors[my_src->num_of_neighbors - 1] = (Node*)malloc(sizeof(Node));
-    my_src->neighbors[my_src->num_of_neighbors - 1]->num_node = my_dest->num_node;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->neighbors = my_dest->neighbors;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->num_of_neighbors = my_dest->num_of_neighbors;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->weights = my_dest->weights;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->w_sum = my_dest->w_sum;
-    my_src->neighbors[my_src->num_of_neighbors - 1]->Tag = my_dest->Tag;
-    my_src->weights[my_src->num_of_neighbors - 1] = w;
-    // if (!my_src->neighbors)
-    // {
-    //     my_src->weights = (int *)malloc(my_src->num_of_neighbors * sizeof(int));
-    // }
-    // else
-    // {
-    //     my_src->weights = (int *)realloc(my_src->weights, my_src->num_of_neighbors * sizeof(int));
-    // }
-    // my_src->weights[my_src->num_of_neighbors - 1] = w;
 }
 
+static Node *search_node(int num_node, Graph *gr)
+{
+    Node *tmp = gr->nodes_head;
+    while (tmp)
+    {
+        if (tmp->num_node == num_node)
+        {
+            break;
+        }
+        tmp = tmp->next;
+    }
+    return tmp; // return the node that we want to find or NULL if not found
+}
+
+static void remove_outgoing_edges(Node *node)
+{
+    // remove all the outgoing edges from the node
+    Edge *edge = node->edges_head;
+    while (edge)
+    {
+        Edge *next = edge->next;
+        free(edge);
+        edge = next;
+        node->num_of_neighbors--;
+    }
+    node->edges_head = NULL; // set the head of the list to NULL
+    return;
+}
+
+void connect_node_to_graph(Node *node, Graph *gr)
+{
+    // connect the node to the graph (doubly linked list)
+    node->next = gr->nodes_head;
+    node->prev = NULL;
+    if (gr->nodes_head != NULL)
+    {
+        gr->nodes_head->prev = node;
+    }
+    gr->nodes_head = node;
+    return;
+}
+
+// add node to the graph
 Node *add_node(int src, Graph *gr)
 {
-    Node *my_src = NULL;
-    for (int i = 0; i < gr->N; ++i)
-    {
-        if (gr->nodes[i].num_node == src)
-        {
-            my_src = &gr->nodes[i];
-        }
-    }
+    
+    // search for the node with number src in the graph linked list
+    Node *my_src = search_node(src, gr);
+
     if (my_src != NULL)
     {
-        free(my_src->neighbors);
-        my_src->neighbors = NULL;
-        my_src->num_of_neighbors = 0;
-        free(my_src->weights);
-        my_src->weights = NULL;
+        // remove all outgoing edges from the node
+        remove_outgoing_edges(my_src);
     }
     else
     {
+        // create a new node
+        my_src = (Node *)malloc(sizeof(Node));
+        my_src->num_node = src;
+        my_src->edges_head = NULL;
+        my_src->num_of_neighbors = 0;
+        connect_node_to_graph(my_src, gr);
         gr->N++;
-        gr->nodes = (Node *)realloc(gr->nodes, gr->N * sizeof(Node));
-        gr->nodes[gr->N - 1].num_node = src;
-        gr->nodes[gr->N - 1].num_of_neighbors = 0;
-        gr->nodes[gr->N - 1].weights = NULL;
-        gr->nodes[gr->N - 1].Tag = 0;
-        gr->nodes[gr->N - 1].neighbors = NULL;
-        my_src = &gr->nodes[gr->N - 1];
     }
     return my_src;
 }
 
 void delete_helper(int num, Node *node, Graph *gr);
 
-void reset_tag(const struct Graph *gr);
+void init_shortest_paths(const struct Graph *gr);
 
-void delete_node(int num, Graph *gr)
+static void remove_node_from_graph(Node *node, Graph *gr)
 {
-    printf("line 117\n");
-    Node *my_src = NULL;
-    for (int i = 0; i < gr->N; ++i)
-        if (gr->nodes[i].num_node == num)
-        {
-            my_src = &gr->nodes[i];
-            break;
-        }
-    printf("line 126\n");
-    printf("line 131\n");
-    printGraph(gr);
-    free(my_src->neighbors);
-    my_src->neighbors = NULL;
-    free(my_src->weights);
-    my_src->weights = NULL;
-    my_src->num_of_neighbors = 0;
-    printGraph(gr);
-    printf("line 137\n");
-    // for (int i = 0; i < gr->N; ++i)
-    // {
-    //    delete_helper(num, &gr->nodes[i], gr);
-    // }
-    printf("line 142\n");
-    Node *new_nodes = (Node *)malloc((gr->N-1) * sizeof(Node));
-    int counter = 0 ;
-    for(int i = 0 ; i< gr->N ; ++i)
+    // remove the node from the graph
+    if (node->prev != NULL)
     {
-        if(gr->nodes[i].num_node != num)
-        {
-            new_nodes[counter] = gr->nodes[i];
-            counter++;
-        }
-        for (int j = 0; j < gr->nodes[i].num_of_neighbors; j++)
-       {
-           printf("line 158: gr->nodes[i] %d\n", gr->nodes[i].num_node);
-           printf("line 159: gr->nodes[i].num_of_neighbors %d\n", gr->nodes[i].num_of_neighbors);
-           if (gr->nodes[i].neighbors[j]->num_node == num)
-           {
-               if (j == 0)
-                   for (int k = 1; k < gr->nodes[i].num_of_neighbors; k++)
-                   {
-                       printf("line 165: j==0:  gr->nodes[i] %d\n", gr->nodes[i].num_node);
-                       gr->nodes[i].neighbors[k - 1] = (Node*)malloc(gr->nodes[i].num_of_neighbors-1 * sizeof(Node));
-                       gr->nodes[i].neighbors[k - 1] = gr->nodes[i].neighbors[k];
-                   }
-               else
-               {
-                   if (j > 0 && j < gr->nodes[i].num_of_neighbors - 1)
-                   {
-                       printf("line 173: else 1 :  gr->nodes[i] %d\n", gr->nodes[i].num_node);
-                       for (int k = j; k < gr->nodes[i].num_of_neighbors - 1; k++)
-                       {
-                           gr->nodes[i].neighbors[k] = (Node*)malloc(gr->nodes[i].num_of_neighbors-1 * sizeof(Node));
-                           gr->nodes[i].neighbors[k] = gr->nodes[i].neighbors[k + 1];
-                       }
-                       free(gr->nodes[i].neighbors[gr->nodes[i].num_of_neighbors - 1]);
-                   }
-                   else{
-                       printf("line 173: else 1 :  gr->nodes[i] %d\n", gr->nodes[i].num_node);
-                   }
-               }
-               free(gr->nodes[i].neighbors);
-               gr->nodes[i].num_of_neighbors--;
-           }
-       }
-
+        node->prev->next = node->next;
     }
-    printf("line 150\n");
-    free(gr->nodes);
-    gr->nodes = new_nodes;
-    gr->N--;
-}
-
-
-void delete_helper(int num, Node* node, Graph* gr)
-{
-    for (int i = 0; i < gr->N; i++)
+    else
     {
-       for (int j = 0; j < gr->nodes[i].num_of_neighbors; j++)
-       {
-           if (gr->nodes[i].neighbors[j]->num_node == num)
-           {
-               free(gr->nodes[i].neighbors);
-               if (j == 0)
-                   for (int k = 1; k < gr->nodes[i].num_of_neighbors; k++)
-                   {
-                       gr->nodes[i].neighbors[k - 1] = (Node*)malloc(sizeof(Node));
-                       gr->nodes[i].neighbors[k - 1] = gr->nodes[i].neighbors[k];
-                   }
-               else
-               {
-                   if (j > 0 && j < gr->nodes[i].num_of_neighbors - 1)
-                   {
-                       for (int k = j; k < gr->nodes[i].num_of_neighbors - 1; k++)
-                       {
-                           gr->nodes[i].neighbors[k] = (Node*)malloc(sizeof(Node));
-                           gr->nodes[i].neighbors[k] = gr->nodes[i].neighbors[k + 1];
-                       }
-                       free(gr->nodes[i].neighbors[gr->nodes[i].num_of_neighbors - 1]);
-                   }
-               }
-               gr->nodes[i].num_of_neighbors--;
-           }
-       }
+        gr->nodes_head = node->next;
     }
 
-    // printf(" 1 .i am here\n");
-    // Node **new_neighbors = (Node **)realloc(node->neighbors, gr->N - 1);
-    // int *new_weights = (int *)realloc(node->weights, gr->N - 1);
-    // int location_of_neighbor = -1;
-    // for (int j = 0; j < node->num_of_neighbors; ++j)
-    // {
-    //     if (node->neighbors[j]->num_node == num)
-    //     {
-    //         location_of_neighbor = j;
-    //         break;
-    //     }
-    // }
-    // if (location_of_neighbor == -1)
-    // {
-    //     return;
-    // }
-    // if (location_of_neighbor == 0)
-    // {
-    //     printf(" 1. node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
-    //     memcpy(new_neighbors, node->neighbors[1],
-    //            (node->num_of_neighbors - 1 ));
-    //     memcpy(new_weights, &node->weights[1],
-    //            (node->num_of_neighbors - 1 ) * sizeof(int));
-    // }
-    // else if (location_of_neighbor == node->num_of_neighbors - 1) // 5
-    // {
-    //     printf("2. node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
-    //     memcpy(new_neighbors, node->neighbors[0],
-    //            (node->num_of_neighbors - 1) * sizeof(Node *));
-    //     memcpy(new_weights, &node->weights[0],
-    //            (node->num_of_neighbors - 1) * sizeof(int));
-    // }
-    // else
-    // {
-    //     printf("node: %d, num_ of neigh: %d \n" ,node->num_node, node->num_of_neighbors);
-    //     memcpy(new_neighbors, node->neighbors[0],
-    //            (location_of_neighbor) * sizeof(Node *));
-    //     memcpy(new_neighbors[location_of_neighbor],
-    //            node->neighbors[location_of_neighbor + 1],
-    //            (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
-    //     memcpy(new_weights, &node->weights[0],
-    //            (location_of_neighbor) * sizeof(Node *));
-    //     memcpy(&new_weights[location_of_neighbor],
-    //            &node->weights[location_of_neighbor + 1],
-    //            (node->num_of_neighbors - location_of_neighbor - 1) * sizeof(Node *));
-    // }
-    // printf("4 . i am here\n");
-    // free(node->neighbors);
-    // node->neighbors = new_neighbors;
-    // node->weights = new_weights;
-    // node->num_of_neighbors--;
-//    free(node->neighbors);
+    if (node->next != NULL)
+    {
+        node->next->prev = node->prev;
+    }
+    free(node);
+    return;
 }
 
-int min_Val(struct Graph *gr)
+static void remove_edge(Edge *edge, Node *node)
 {
-    int sum = INT_MAX;
-    int j = 0;
-    for (int i = 0; i < gr->N; i++)
+    // if i'm the head of the list
+    if (edge->prev == NULL)
     {
-        if (gr->nodes[i].w_sum < sum)
+        node->edges_head = edge->next;
+    }
+    else
+    {
+        edge->prev->next = edge->next; // update the previous pointer of the next edge
+    }
+    if (edge->next != NULL)
+    {
+        //if i'm not at the end of the list
+        edge->next->prev = edge->prev; // update the next pointer of the previous edge
+    }
+    free(edge); // free the edge memory
+    node->num_of_neighbors--;
+    return;
+}
+
+static void remove_incoming_edges(int dest, Graph *gr)
+{
+    // remove all the incoming edges to the node
+    // iterate over all the nodes in the graph
+    for (Node *node = gr->nodes_head; node != NULL; node = node->next)
+    {
+        // iterate over all the edges of the node
+        for (Edge *edge = node->edges_head; edge != NULL; edge = edge->next)
         {
-            if (gr->nodes[i].Tag == 0)
+            // if the edge is incoming to the node
+            if (edge->dest == dest)
             {
-                sum = gr->nodes[i].w_sum;
-                j = i;
+               remove_edge(edge, node); // remove the edge from the node
+               break; // move to the next node. no need to check the rest of the edges
             }
         }
     }
-    return j;
+    return;
 }
 
-int MIN(int x, int y)
+
+void delete_node(int num, Graph *gr)
 {
-    if (x < y)
+    // search for the node with number src in the graph linked list
+    Node *my_src = search_node(num, gr);
+    if (my_src == NULL)
     {
-        return x;
+        printf("node %d is not found\n", num);
+        exit(1);
     }
-    else
-    {
-        return y;
-    }
+
+    // remove all outgoing edges from the node
+    remove_outgoing_edges(my_src);
+
+    // remove all incoming edges to this node
+    remove_incoming_edges(my_src->num_node, gr);
+
+    // remove the node from the graph
+    remove_node_from_graph(my_src, gr);
+    // update num of nodes
+    gr->N--;
+    return;
 }
 
-void reset_tag(const struct Graph *gr)
-{
-    for (int i = 0; i < gr->N; ++i)
-    {
-        gr->nodes[i].Tag = 0;
-    }
-}
 
-void reset_num_w(const struct Graph *gr)
-{
-    for (int i = 0; i < gr->N; ++i)
-    {
-        gr->nodes[i].w_sum = 0;
-    }
-}
 
-int shortsPath(int src, int dest, struct Graph *gr) // you get the shorts path
+int shortestPath(int src,int dest, Graph *gr)
 {
-    reset_num_w(gr);
-    int ans = -1;
-    Node *ptr = NULL;
+    //build adjacency matrix
+    int **adj_matrix = (int **)malloc(gr->N * sizeof(int *));
     for (int i = 0; i < gr->N; i++)
     {
-        if (gr->nodes[i].num_node == src)
+        adj_matrix[i] = (int *)malloc(gr->N * sizeof(int));
+    }
+    for (int i = 0; i < gr->N; i++)
+    {
+        for (int j = 0; j < gr->N; j++)
         {
-            ptr = &gr->nodes[i];
-            continue;
+            adj_matrix[i][j] = INT_MAX;
+            if (i == j)
+            {
+                adj_matrix[i][j] = 0;
+            }
         }
-        gr->nodes[i].w_sum = INT_MAX;
     }
-    if (ptr->num_of_neighbors == 0)
+    for (Node *node = gr->nodes_head; node != NULL; node = node->next)
     {
-        return -1;
-    }
-    int l = 0;
-    while (l < gr->N)
-    {
-        if (ptr->Tag == 1)
+        for (Edge *edge = node->edges_head; edge != NULL; edge = edge->next)
         {
-            l++;
-            continue;
+            adj_matrix[node->num_node][edge->dest] = edge->weight;
         }
-        ptr->Tag = 1;
-        for (int j = 0; j < ptr->num_of_neighbors; ++j)
-        {
-            Node *temp = ptr->neighbors[j];
-            gr->nodes[temp->num_node].w_sum = MIN(gr->nodes[temp->num_node].w_sum, ptr->weights[j] + ptr->w_sum);
-        }
-        int num = min_Val(gr);
-        ptr = &gr->nodes[num];
-        l++;
     }
-    reset_tag(gr);
-    ptr = &gr->nodes[dest];
-    if (ptr->w_sum == INT_MAX)
+
+    struct GraphDijkstra *graph = (struct GraphDijkstra *)malloc(sizeof(*graph));
+    graph->edges = adj_matrix;
+    graph->vertexNum = gr->N;
+    int retval = Dijkstra(graph, src, dest);
+    //free memory
+    for (int i = 0; i < gr->N; i++)
     {
-        return ans;
+        free(adj_matrix[i]);
     }
-    else
-    {
-        return ptr->w_sum;
-    }
+    free(adj_matrix);
+    free(graph);
+
+    return retval;
 }
+
 
 void printGraph(struct Graph *gr) // Print your graph
 {
-    Node *ptr = NULL;
-    printf("Your graph have %d Node\n", gr->N);
-    printf("Look Your graph: \n");
-    for (int i = 0; i < gr->N; ++i)
+    // iterate over all the nodes in the graph
+    for (Node *node = gr->nodes_head; node != NULL; node = node->next)
     {
-        ptr = &gr->nodes[i];
-        printf("Node: %d\n", ptr->num_node);
-        for (int j = 0; j < ptr->num_of_neighbors; j++)
+        printf("Node %d: ", node->num_node);
+        // iterate over all the edges of the node
+        for (Edge *edge = node->edges_head; edge != NULL; edge = edge->next)
         {
-            printf("(%d -> %d), w:(%d)", ptr->num_node, ptr->neighbors[j]->num_node, ptr->weights[j]);
+            printf("%d(%d) ", edge->dest, edge->weight);
         }
-        printf("NULL\n");
+        printf("\n");
     }
+    //print long line of '-'
+    printf("-----------------------------------------------------\n");
+
+    return;   
 }
 
 void swap(int x, int y, int *a)
@@ -400,7 +309,6 @@ void swap(int x, int y, int *a)
 
 void TSP(int num_of_values, struct Graph *gr)
 {
-    reset_num_w(gr);
     int *ptr, *c;
     int val;
     c = (int *)malloc(num_of_values * sizeof(int));
@@ -415,7 +323,7 @@ void TSP(int num_of_values, struct Graph *gr)
     int temp_sum = 0;
     for (int j = 0; j < num_of_values - 1; j++)
     {
-        int temp = shortsPath(ptr[j], ptr[j + 1], gr);
+        int temp = shortestPath(ptr[j], ptr[j + 1], gr);
         if (temp == -1)
         {
             temp_sum = 0;
@@ -443,7 +351,7 @@ void TSP(int num_of_values, struct Graph *gr)
             }
             for (int j = 0; j < num_of_values - 1; j++)
             {
-                int temp = shortsPath(ptr[j], ptr[j + 1], gr);
+                int temp = shortestPath(ptr[j], ptr[j + 1], gr);
                 if (temp == -1)
                 {
                     temp_sum = 0;
@@ -468,28 +376,29 @@ void TSP(int num_of_values, struct Graph *gr)
     if (ans == INT_MAX || ans == 0)
     {
         ans = -1;
-        printf("TSP shortest path: %d\n", ans);
+        printf("TSP shortest path: %d \n", ans);
     }
     else
     {
-        printf("TSP shortest path: %d\n", ans);
+        printf("TSP shortest path: %d \n", ans);
     }
-    reset_num_w(gr);
     free(ptr);
     free(c);
 }
 
 void delete_gr(Graph *gr)
 {
-    for (int i = 0; i < gr->N; ++i)
+    Node *node = gr->nodes_head;
+    Node *next = NULL;
+    while (node != NULL)
     {
-        free(gr->nodes[i].weights);
-        for (int j = 0; j < gr->nodes[i].num_of_neighbors ; j++)
-        {
-            free(gr->nodes[i].neighbors[j]);
-        }
-        free(gr->nodes[i].neighbors);
+        next = node->next;
+        //remove all edges
+        remove_outgoing_edges(node);
+        remove_node_from_graph(node, gr);
+        node = next;
+        gr->N--;
     }
-    free(gr->nodes);
     free(gr);
 }
+

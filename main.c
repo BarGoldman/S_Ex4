@@ -5,13 +5,17 @@
 
 int main()
 {
+
+    // set flushing of stdout to non-buffered
+    setvbuf(stdout, NULL, _IONBF, 0);
+
     struct Graph *gr = NULL;
     char ch;
     int input_num;
     //	printf("enter First letter A/B/D/S: \n");
     while (scanf("%c", &ch))
     {
-        if (ch == '\n') 
+        if (ch == '\n')
         {
             break;
         }
@@ -20,97 +24,50 @@ int main()
             if (gr != NULL)
             {
                 delete_gr(gr);
+                gr = NULL;
             }
-            //			printf("enter how mach node: \n");
-            scanf("%d", &input_num);
+            scanf("%d", &input_num); // get the number of nodes
             gr = build_graph(input_num);
-            //			char l_n;
-            int src_A;
-            int dest_A;
-            int w_A;
-            //			printf("one: %c\n",ch);
-            //			printf("enter n: \n");
-            //			scanf("%c", &ch);
-            //			scanf("%c", &ch);
-            //			scanf("%d",&dest_A);
-            //			printf("3: %c\n",ch);
-            while (scanf("%c", &ch))
-            {
-                if (ch == 'n')
-                {
-                    //				printf("enter node: \n");
-                    scanf("%d", &src_A);
-                    // if(ch == EOF){
-                    // 	break;
-                    // }
-                    //				printf("enter dest: \n");
-                    while (scanf("%d", &dest_A))
-                    {
-                        //					printf("enter wight: \n");
-                        scanf("%d", &w_A);
-                        set_edge(src_A, dest_A, w_A, gr);
-                    }
-                }
-                if (ch == 'A' || ch == 'B' || ch == 'D' || ch == 'S' || ch == 'T' || ch == '\n')
-                {
-                    break;
-                }
-            }
-            //			printf("two: %c\n",ch);
-            printf("after A: \n");
-            printGraph(gr);
         }
-        if (ch == 'B')
+        else if (ch == 'n') 
+        {
+            int src_A;
+            while (scanf("%d", &src_A))
+            {
+                    add_node(src_A, gr);
+                    recieve_edges(src_A, gr); // get the edges if any are given
+            }
+        }
+        else if (ch == 'B')
         {
             int num_B;
-            int dest;
-            int weight;
-            //			printf("enter num node add: \n");
             scanf("%d", &num_B);
             Node *my_src = add_node(num_B, gr);
-            //			printf("enter dest node add: \n");
-            while (scanf("%d", &dest))
-            {
-                //				printf("enter weight node add: \n");
-                scanf("%d", &weight);
-                set_edge(my_src->num_node, dest, weight, gr);
-                //				printf("enter dest node add: OR CHANGE LETTER:\n");
-            }
-            printGraph(gr);
+            // get and and edges to node
+            recieve_edges(my_src->num_node, gr);
         }
-        // if (ch == 'D')
-        // {
-        //     int dest;
-        //     //			printf("enter node delete: \n");
-        //     scanf("%d", &dest);
-        //     delete_node(dest, gr);
-        //     printGraph(gr);
-        //     //			printf("enter next letter : \n");
-        // }
-        if (ch == 'S')
+        else if (ch == 'D')
+        {
+            int to_remove;
+            scanf("%d", &to_remove);
+            delete_node(to_remove, gr);
+        }
+        else if (ch == 'S')
         {
             int src;
             int dest;
             scanf("%d", &src);
-            //			printf("enter node dest: \n");
             scanf("%d", &dest);
-            int ans  = shortsPath(src, dest, gr);
-            printf("Dijsktra shortest path: %d\n", ans);
-            // printGraph(gr);
-            //			printf("enter next letter : \n");
+            int ans = shortestPath(src, dest, gr);
+            printf("Dijsktra shortest path: %d \n", ans);
         }
-        // if (ch == 'W')
-        // {
-        //     printf("i here:\n");
-        //     printGraph(gr);
-        //     break;
-        // }
-        if (ch == 'T')
+        else if (ch == 'T')
         {
             int k;
             scanf("%d", &k);
             TSP(k, gr);
         }
+        // printGraph(gr);
     }
     delete_gr(gr);
     return 0;
